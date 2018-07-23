@@ -22,6 +22,8 @@ export default class DataBus {
     this.score      = 0
     this.bullets    = []
     this.enemys     = []
+    this.scanners   = []
+    this.flotages   = []
     this.animations = []
     this.gameOver   = false
   }
@@ -37,7 +39,22 @@ export default class DataBus {
 
     this.pool.recover('enemy', enemy)
   }
+  
+  removeScanner(scanner) {
+    let temp = this.scanners.shift()
 
+    temp.visible = false
+
+    this.pool.recover('scanner', scanner)
+  }
+
+  removeFlotage(flotage) {
+    let temp = this.flotages.shift()
+
+    temp.visible = false
+
+    this.pool.recover('flotage', flotage)
+  }
   /**
    * 回收子弹，进入对象池
    * 此后不进入帧循环

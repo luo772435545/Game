@@ -1,6 +1,8 @@
 import Sprite   from '../base/sprite'
 import Bullet   from './bullet'
 import DataBus  from '../databus'
+//import DataBus from '../databus'
+import Config from '../config/data'
 
 const screenWidth    = window.innerWidth
 const screenHeight   = window.innerHeight
@@ -114,11 +116,11 @@ export default class Player extends Sprite {
    */
   shoot() {
     let bullet = databus.pool.getItemByClass('bullet', Bullet)
-
+   
     bullet.init(
       this.x + this.width / 2 - bullet.width / 2,
       this.y - 10,
-      10
+      Config.BULLET_SPEED
     )
 
     databus.bullets.push(bullet)

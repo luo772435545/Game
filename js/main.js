@@ -1,5 +1,6 @@
 import Player from './player/index'
 import Enemy from './npc/enemy'
+import Scanner from './npc/scanner'
 import BackGround from './runtime/background'
 import GameInfo from './runtime/gameinfo'
 import Music from './runtime/music'
@@ -54,7 +55,15 @@ export default class Main {
       enemy.init(6)
       databus.enemys.push(enemy)
     }
+      else if (databus.frame % 50 === 0) {
+        let scanner = databus.pool.getItemByClass('scanner', Scanner)
+        scanner.init(6)
+        databus.scanners.push(scanner)
+      }
+
+    
   }
+
 
   // 全局碰撞检测
   collisionDetection() {
@@ -74,6 +83,21 @@ export default class Main {
           break
         }
       }
+
+      for (let i = 0, il = databus.scanners.length; i < il; i++) {
+        let scanner = databus.scanners[i]
+
+        if (!scanner.isPlaying && scanner.isCollideWith(bullet)) {
+          scanner.playAnimation()
+          that.music.playExplosion()
+
+          bullet.visible = false
+          databus.score += 1
+
+          break
+        }
+      }
+
     })
 
     for (let i = 0, il = databus.enemys.length; i < il; i++) {
@@ -118,6 +142,12 @@ export default class Main {
         item.drawToCanvas(ctx)
       })
 
+    databus.bullets
+      .concat(databus.scanners)
+      .forEach((item) => {
+        item.drawToCanvas(ctx)
+      })
+
     this.player.drawToCanvas(ctx)
 
     databus.animations.forEach((ani) => {
@@ -149,6 +179,12 @@ export default class Main {
 
     databus.bullets
       .concat(databus.enemys)
+      .forEach((item) => {
+        item.update()
+      })
+
+    databus.bullets
+      .concat(databus.scanners)
       .forEach((item) => {
         item.update()
       })
