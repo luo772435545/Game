@@ -9,8 +9,6 @@
 	},
 	"compileType": "game",
 	"libVersion": "game",
-	"appid": "wx900bc476077a40b1",
-	"projectname": "Game",
 	"isGameTourist": true,
 	"condition": {
 		"search": {
