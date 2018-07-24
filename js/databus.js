@@ -26,6 +26,7 @@ export default class DataBus {
     this.flotages   = []
     this.animations = []
     this.gameOver   = false
+    this.prizeInfo  = false
   }
 
   /**

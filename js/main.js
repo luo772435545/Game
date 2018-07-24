@@ -3,9 +3,9 @@ import Enemy from './npc/enemy'
 import Scanner from './npc/scanner'
 import BackGround from './runtime/background'
 import GameInfo from './runtime/gameinfo'
+import PrizeInfo from './runtime/prizeinfo'
 import Music from './runtime/music'
 import DataBus from './databus'
-
 let ctx = canvas.getContext('2d')
 let databus = new DataBus()
 
@@ -27,14 +27,16 @@ export default class Main {
       'touchstart',
       this.touchHandler
     )
+    canvas.removeEventListener('touchcontinue', this.continueHandler)
 
     this.bg = new BackGround(ctx)
     this.player = new Player(ctx)
     this.gameinfo = new GameInfo()
     this.music = new Music()
-
+    this.prizeinfo=new PrizeInfo()
     this.bindLoop = this.loop.bind(this)
     this.hasEventBind = false
+    this.continue = true
 
     // 清除上一局的动画
     window.cancelAnimationFrame(this.aniId);
@@ -57,7 +59,8 @@ export default class Main {
     }
       else if (databus.frame % 50 === 0) {
         let scanner = databus.pool.getItemByClass('scanner', Scanner)
-        scanner.init(6)
+        scanner.init(2)
+        scanner.playAnimation(0, true)
         databus.scanners.push(scanner)
       }
 
@@ -84,19 +87,19 @@ export default class Main {
         }
       }
 
-      for (let i = 0, il = databus.scanners.length; i < il; i++) {
-        let scanner = databus.scanners[i]
+      // for (let i = 0, il = databus.scanners.length; i < il; i++) {
+      //   let scanner = databus.scanners[i]
 
-        if (!scanner.isPlaying && scanner.isCollideWith(bullet)) {
-          scanner.playAnimation()
-          that.music.playExplosion()
+      //   if (!scanner.isPlaying && scanner.isCollideWith(bullet)) {
+      //     scanner.playAnimation()
+      //     that.music.playExplosion()
 
-          bullet.visible = false
-          databus.score += 1
+      //     bullet.visible = false
+      //     databus.score += 1
 
-          break
-        }
-      }
+      //     break
+      //   }
+      // }
 
     })
 
@@ -105,6 +108,16 @@ export default class Main {
 
       if (this.player.isCollideWith(enemy)) {
         databus.gameOver = true
+
+        break
+      }
+    }
+
+    for (let i = 0, il = databus.scanners.length; i < il; i++) {
+      let scanner = databus.scanners[i]
+
+      if (this.player.isCollideWith(scanner)) {
+        databus.prizeInfo = true
 
         break
       }
@@ -119,13 +132,38 @@ export default class Main {
     let y = e.touches[0].clientY
 
     let area = this.gameinfo.btnArea
-
     if (x >= area.startX
       && x <= area.endX
       && y >= area.startY
       && y <= area.endY)
       this.restart()
+
+      
   }
+
+//游戏暂停时触摸关闭按钮和京东折扣券的处理逻辑
+
+  continueTouchEventHandler(e){
+    e.preventDefault()
+
+    let x = e.touches[0].clientX
+    let y = e.touches[0].clientY
+    let area = this.prizeinfo.btnArea
+
+    if (x >= area.startX
+      && x <= area.endX
+      && y >= area.startY
+      && y <= area.endY)
+      // this.restart()
+      // this.aniId = window.requestAnimationFrame(
+      //   this.bindLoop,
+      //   canvas
+      // )
+      this.continue = true
+  }
+
+
+
 
   /**
    * canvas重绘函数
@@ -162,17 +200,34 @@ export default class Main {
     if (databus.gameOver) {
       this.gameinfo.renderGameOver(ctx, databus.score)
 
-      if (!this.hasEventBind) {
+       if (!this.hasEventBind) {
         this.hasEventBind = true
-        this.touchHandler = this.touchEventHandler.bind(this)
-        canvas.addEventListener('touchstart', this.touchHandler)
-      }
+         this.touchHandler = this.touchEventHandler.bind(this)
+         canvas.addEventListener('touchstart', this.touchHandler)
+       }
+    }
+
+    // 游戏暂停
+    if (databus.prizeInfo) {
+     
+     this.prizeinfo.renderPrizeInfo(ctx)
+     
+
+       if (!this.hasEventBind) {
+         this.hasEventBind = true
+         this.continueHandler = this.continueTouchEventHandler.bind(this)
+         canvas.addEventListener('touchstart', this.continueHandler)
+         
+       }
     }
   }
 
   // 游戏逻辑更新主函数
   update() {
     if (databus.gameOver)
+      return;
+
+    if (databus.prizeInfo)
       return;
 
     this.bg.update()
